@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <stm32f7xx.h>
 #include <FreeRTOS.h>
 #include <task.h>
@@ -13,6 +14,8 @@
 #define LD2_Pin GPIO_PIN_7
 #define USER_Btn_Pin GPIO_PIN_13
 #define USER_Btn_GPIO_Port GPIOC
+
+UART_HandleTypeDef huart3;
 
 uint8_t temp_counter = 0;
 
@@ -30,12 +33,21 @@ void taskBlink2(void *pvParameters) {
     }
 }
 
+void taskSerial(void *pvParameters) {
+    while(1) {
+        char message[] = "Hello from taskSerial\r\n";
+        HAL_UART_Transmit(&huart3, (uint8_t*)message, strlen(message), HAL_MAX_DELAY);
+        // printf("Hello from taskSerial\n");
+        vTaskDelay(2000);
+    }
+}
+
 
 void Error_Handler(void)
 {
-  __disable_irq();
-  while (1) {
-  }
+    __disable_irq();
+    while (1) {
+    }
 }
 
 void SystemClock_Config(void)
@@ -116,12 +128,63 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
+static void MX_USART3_UART_Init(void)
+{
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart3) != HAL_OK) {
+    Error_Handler();
+  }
+}
+
+
+void HAL_UART_MspInit(UART_HandleTypeDef* huart)
+{
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+    if(huart->Instance == USART3) {
+        PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3;
+        PeriphClkInitStruct.Usart3ClockSelection = RCC_USART3CLKSOURCE_PCLK1;
+        if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
+          Error_Handler();
+        }
+
+        /* Peripheral clock enable */
+        __HAL_RCC_USART3_CLK_ENABLE();
+  
+        __HAL_RCC_GPIOD_CLK_ENABLE();
+        /**USART3 GPIO Configuration    
+        PD8     ------> USART3_TX
+        PD9     ------> USART3_RX 
+        */
+        GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+        HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+        /* USART3 interrupt Init */
+        HAL_NVIC_SetPriority(USART3_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(USART3_IRQn);
+    }
+}
 
 int main(void)
 {
     HAL_Init();
     SystemClock_Config();
     MX_GPIO_Init();
+    MX_USART3_UART_Init();
 
     //osKernelInitialize();
 
@@ -138,6 +201,7 @@ int main(void)
     // start FreeRTOS tasks
     xTaskCreate(taskBlink1, "Blink1", 128, NULL, 1, NULL);
     xTaskCreate(taskBlink2, "Blink2", 128, NULL, 1, NULL);
+    xTaskCreate(taskSerial, "Serial", 128, NULL, 1, NULL);
 
     vTaskStartScheduler();
 

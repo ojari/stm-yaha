@@ -77,7 +77,7 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PUBLIC 
     ${sources_SRCS}
-    src/lwip.c
+    #src/lwip.c
     ../common/FreeRTOS/croutine.c
     ../common/FreeRTOS/event_groups.c
     ../common/FreeRTOS/list.c
@@ -88,16 +88,17 @@ target_sources(${CMAKE_PROJECT_NAME} PUBLIC
     ../common/FreeRTOS/portable/MemMang/heap_4.c
     ../common/FreeRTOS/CMSIS_RTOS_V2/cmsis_os2.c
     ../common/cmsis/system_stm32f7xx.c
-    ../common/HAL_F7/Src/stm32f7xx_hal_eth.c
+    #../common/HAL_F7/Src/stm32f7xx_hal_eth.c
     ../common/HAL_F7/Src/stm32f7xx_hal_gpio.c
     ../common/HAL_F7/Src/stm32f7xx_hal_rcc.c
+    ../common/HAL_F7/Src/stm32f7xx_hal_rcc_ex.c
     ../common/HAL_F7/Src/stm32f7xx_hal.c
     ../common/HAL_F7/Src/stm32f7xx_hal_cortex.c
     ../common/HAL_F7/Src/stm32f7xx_hal_tim.c
     ../common/HAL_F7/Src/stm32f7xx_hal_uart.c
     ../common/HAL_F7/Src/stm32f7xx_hal_pwr.c
     ../common/HAL_F7/Src/stm32f7xx_hal_pwr_ex.c
-    ../common/HAL_F7/Src/stm32f7xx_hal_dma.c
+    #../common/HAL_F7/Src/stm32f7xx_hal_dma.c
 )
 
 # Add include paths
@@ -108,8 +109,8 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ../common/FreeRTOS/portable/GCC/ARM_CM7/r0p1
     ../common/FreeRTOS/CMSIS_RTOS_V2
     ../common/HAL_F7/Inc
-    ../common/LwIP/src/include
-    ../common/LwIP/system
+    #../common/LwIP/src/include
+    #../common/LwIP/system
     $<$<COMPILE_LANGUAGE:C>: ${include_c_DIRS}>
     $<$<COMPILE_LANGUAGE:CXX>: ${include_cxx_DIRS}>
     $<$<COMPILE_LANGUAGE:ASM>: ${include_asm_DIRS}>
