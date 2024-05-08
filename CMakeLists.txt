@@ -77,6 +77,7 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PUBLIC 
     ${sources_SRCS}
+    src/terminal.c
     #src/lwip.c
     ../common/FreeRTOS/croutine.c
     ../common/FreeRTOS/event_groups.c
