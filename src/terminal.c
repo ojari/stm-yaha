@@ -4,6 +4,7 @@
 //#include "queue.h"
 //#include "semphr.h"
 #include "main.h"
+#include "leds.h"
 
 #define MAX_COMMAND_LENGTH 50
 #define NUM_COMMANDS 3
@@ -65,12 +66,15 @@ void UART_Task(void *pvParameters) {
 
 void command1_handler(void) {
     SendString("Command 1 ok\r\n");
+    currentPattern = 0;
 }
 
 void command2_handler(void) {
     SendString("Command 2 ok\r\n");
+    currentPattern = 1;
 }
 
 void command3_handler(void) {
     SendString("Command 3 ok\r\n");
+    currentPattern = 2;
 }

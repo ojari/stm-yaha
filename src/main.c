@@ -4,30 +4,16 @@
 #include <stm32f7xx.h>
 #include <FreeRTOS.h>
 #include <task.h>
-#include <stm32f7xx_hal.h>
+#include "main.h"
 #include "terminal.h"
+#include "leds.h"
 
-#define LD3_Pin GPIO_PIN_14
-#define LD2_Pin GPIO_PIN_7
 #define USER_Btn_Pin GPIO_PIN_13
 #define USER_Btn_GPIO_Port GPIOC
 
 UART_HandleTypeDef huart3;
 uint8_t temp_counter = 0;
 
-void taskBlink1(void *pvParameters) {
-    while(1) {
-        HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
-        vTaskDelay(1000);
-    }
-}
-
-void taskBlink2(void *pvParameters) {
-    while(1) {
-        HAL_GPIO_TogglePin(GPIOB, LD3_Pin);
-        vTaskDelay(500);
-    }
-}
 
 void Error_Handler(void) {
     __disable_irq();
@@ -95,7 +81,9 @@ static void MX_GPIO_Init(void) {
     __HAL_RCC_GPIOG_CLK_ENABLE();
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, 
+                      RED_LED_Pin | BLUE_LED_Pin,
+                      GPIO_PIN_RESET);
 
     /*Configure GPIO pin : USER_Btn_Pin */
     GPIO_InitStruct.Pin = USER_Btn_Pin;
@@ -104,7 +92,7 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
 
     /*Configure GPIO pins : LD3_Pin LD2_Pin */
-    GPIO_InitStruct.Pin = LD3_Pin|LD2_Pin;
+    GPIO_InitStruct.Pin = RED_LED_Pin | BLUE_LED_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -175,8 +163,8 @@ int main(void) {
     GPIOB->MODER |= GPIO_MODER_MODER7_0;
 
     // start FreeRTOS tasks
-    xTaskCreate(taskBlink1, "Blink1", 128, NULL, 1, NULL);
-    xTaskCreate(taskBlink2, "Blink2", 128, NULL, 1, NULL);
+    xTaskCreate(taskLedNotice, "LedNotice", 128, NULL, 1, NULL);
+    xTaskCreate(taskLedError, "LedErr", 128, NULL, 1, NULL);
     xTaskCreate(UART_Task, "UART", 128, NULL, 1, NULL);
 
     vTaskStartScheduler();
