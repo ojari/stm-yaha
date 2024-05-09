@@ -163,9 +163,21 @@ int main(void) {
     GPIOB->MODER |= GPIO_MODER_MODER7_0;
 
     // start FreeRTOS tasks
-    xTaskCreate(taskLedNotice, "LedNotice", 128, NULL, 1, NULL);
-    xTaskCreate(taskLedError, "LedErr", 128, NULL, 1, NULL);
-    xTaskCreate(UART_Task, "UART", 128, NULL, 1, NULL);
+    //
+    #define STACK_SIZE 128
+
+    if (xTaskCreate(taskLedNotice, "LedNotice", STACK_SIZE, 
+                    NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+        Error_Handler();
+    }
+    if (xTaskCreate(taskLedError, "LedErr", STACK_SIZE, 
+                    NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+        Error_Handler();
+    }
+    if (xTaskCreate(UART_Task, "UART", STACK_SIZE,
+                    NULL, tskIDLE_PRIORITY+2, NULL) != pdPASS) {
+        Error_Handler();
+    }
 
     vTaskStartScheduler();
 
