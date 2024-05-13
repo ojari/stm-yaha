@@ -11,7 +11,7 @@ include("cmake/gcc-arm-none-eabi.cmake")
 message("Build CMAKE_MODULE_PATH: " ${CMAKE_MODULE_PATH})
 
 # Core project settings
-project(stmyaha)
+project(m4)
 enable_language(C CXX ASM)
 message("Build type: " ${CMAKE_BUILD_TYPE})
 
@@ -77,42 +77,33 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PUBLIC 
     ${sources_SRCS}
-    src/terminal.c
-    src/leds.c
-    #src/lwip.c
-    ../../common/FreeRTOS/croutine.c
-    ../../common/FreeRTOS/event_groups.c
-    ../../common/FreeRTOS/list.c
-    ../../common/FreeRTOS/tasks.c
-    ../../common/FreeRTOS/queue.c
-    ../../common/FreeRTOS/timers.c
-    ../../common/FreeRTOS/portable/GCC/ARM_CM7/r0p1/port.c
-    ../../common/FreeRTOS/portable/MemMang/heap_4.c
-    ../../common/FreeRTOS/CMSIS_RTOS_V2/cmsis_os2.c
-    ../../common/cmsis/system_stm32f7xx.c
-    #../../common/HAL_F7/Src/stm32f7xx_hal_eth.c
-    ../../common/HAL_F7/Src/stm32f7xx_hal_gpio.c
-    ../../common/HAL_F7/Src/stm32f7xx_hal_rcc.c
-    ../../common/HAL_F7/Src/stm32f7xx_hal_rcc_ex.c
-    ../../common/HAL_F7/Src/stm32f7xx_hal.c
-    ../../common/HAL_F7/Src/stm32f7xx_hal_cortex.c
-    ../../common/HAL_F7/Src/stm32f7xx_hal_tim.c
-    ../../common/HAL_F7/Src/stm32f7xx_hal_uart.c
-    ../../common/HAL_F7/Src/stm32f7xx_hal_pwr.c
-    ../../common/HAL_F7/Src/stm32f7xx_hal_pwr_ex.c
-    #../../common/HAL_F7/Src/stm32f7xx_hal_dma.c
+    src/system_stm32l4xx.c
+    src/stm32l4xx_hal_msp.c
+    src/stm32l4xx_hal_timebase_tim.c
+    src/stm32l4xx_it.c
+    src/hal.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_cortex.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_gpio.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_rcc.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_rcc_ex.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_spi.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_tim.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_tim_ex.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_pwr.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_pwr_ex.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_uart.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_i2c.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_i2c_ex.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_spi.c
+    ../../common/HAL_L4/Src/stm32l4xx_hal_spi_ex.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${include_DIRS}
+    ../../common/HAL_L4/Inc
     ../../common/cmsis
-    ../../common/FreeRTOS/include
-    ../../common/FreeRTOS/portable/GCC/ARM_CM7/r0p1
-    ../../common/FreeRTOS/CMSIS_RTOS_V2
-    ../../common/HAL_F7/Inc
-    #../../common/LwIP/src/include
-    #../../common/LwIP/system
     $<$<COMPILE_LANGUAGE:C>: ${include_c_DIRS}>
     $<$<COMPILE_LANGUAGE:CXX>: ${include_cxx_DIRS}>
     $<$<COMPILE_LANGUAGE:ASM>: ${include_asm_DIRS}>
@@ -121,11 +112,11 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     ${symbols_SYMB}
+    STM32L475xx
     $<$<COMPILE_LANGUAGE:C>: ${symbols_c_SYMB}>
     $<$<COMPILE_LANGUAGE:CXX>: ${symbols_cxx_SYMB}>
     $<$<COMPILE_LANGUAGE:ASM>: ${symbols_asm_SYMB}>
 
-    STM32F767xx
     # Configuration specific
     $<$<CONFIG:Debug>:DEBUG>
     $<$<CONFIG:Release>: >
