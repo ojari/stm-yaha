@@ -82,6 +82,7 @@ target_sources(${CMAKE_PROJECT_NAME} PUBLIC
     src/stm32l4xx_hal_timebase_tim.c
     src/stm32l4xx_it.c
     src/hal.c
+    src/hts221.c
     ../../common/HAL_L4/Src/stm32l4xx_hal.c
     ../../common/HAL_L4/Src/stm32l4xx_hal_cortex.c
     ../../common/HAL_L4/Src/stm32l4xx_hal_gpio.c

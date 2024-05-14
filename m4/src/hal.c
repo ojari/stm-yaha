@@ -186,6 +186,29 @@ void Serial_print(char* str) {
     HAL_UART_Transmit(&huart1, (uint8_t*)str, strlen(str), HAL_MAX_DELAY);
 }
 
+void Serial_printi(uint8_t value) {
+    char buffer[10];
+    uint8_t i = 0;
+    uint8_t length = 0;
+    uint8_t temp = value;
+
+    // Calculate the length of the number
+    do {
+        length++;
+        temp /= 10;
+    } while (temp != 0);
+
+    // Convert the number to a string
+    do {
+        buffer[length - i - 1] = '0' + (value % 10);
+        value /= 10;
+        i++;
+    } while (value != 0);
+
+    buffer[length] = '\0';
+    Serial_print(buffer);
+}
+
 // Receive data over UART
 void Serial_read(char* buffer, uint16_t size) {
     HAL_UART_Receive(&huart1, (uint8_t*)buffer, size, HAL_MAX_DELAY);
@@ -194,8 +217,9 @@ void Serial_read(char* buffer, uint16_t size) {
 
 // I2C driver
 //
-void I2C_begin(I2C_Device* device, uint16_t DevAddress) {
-    device->DevAddress = DevAddress;
+void I2C_begin(I2C_Device* device, uint16_t writeAddress, uint16_t readAddresss) {
+    device->writeAddress = writeAddress;
+    device->readAddress = readAddresss;
 
     hi2c2.Instance = I2C2;
     hi2c2.Init.Timing = 0x10909CEC;
@@ -212,9 +236,9 @@ void I2C_begin(I2C_Device* device, uint16_t DevAddress) {
 }
 
 void I2C_write(I2C_Device* device, uint16_t MemAddress, uint8_t *pData, uint16_t Size) {
-    HAL_I2C_Mem_Write(&hi2c2, device->DevAddress, MemAddress, I2C_MEMADD_SIZE_8BIT, pData, Size, HAL_MAX_DELAY);
+    HAL_I2C_Mem_Write(&hi2c2, device->writeAddress, MemAddress, I2C_MEMADD_SIZE_8BIT, pData, Size, HAL_MAX_DELAY);
 }
 
 void I2C_read(I2C_Device* device, uint16_t MemAddress, uint8_t *pData, uint16_t Size) {
-    HAL_I2C_Mem_Read(&hi2c2, device->DevAddress, MemAddress, I2C_MEMADD_SIZE_8BIT, pData, Size, HAL_MAX_DELAY);
+    HAL_I2C_Mem_Read(&hi2c2, device->readAddress, MemAddress, I2C_MEMADD_SIZE_8BIT, pData, Size, HAL_MAX_DELAY);
 }

@@ -51,46 +51,49 @@
 #define STATUS_REG_DEFAULT 0x00
 
 
-
 // Read a register value
-static uint8_t read_register(uint8_t reg_addr) {
-
-    // Implement the code to read from the HTS221 sensor
-    // and return the value read from the specified register address
+static uint8_t read_register(HTS221_device* device, uint8_t reg_addr) {
+    uint8_t value;
+    I2C_read(&(device->i2c), reg_addr, &value, 1);
+    return value;
 }
 
 // Write a register value
-static void write_register(uint8_t reg_addr, uint8_t value) {
-    // Implement the code to write to the HTS221 sensor
-    // with the specified register address and value
+static void write_register(HTS221_device* device, uint8_t reg_addr, uint8_t value) {
+    I2C_write(&(device->i2c), reg_addr, &value, 1);
 }
 
 // Initialize the HTS221 sensor
-void hts221_init() {
+void hts221_begin(HTS221_device* device) {
+    I2C_begin(&(device->i2c), 0xBE, 0xBF);
     // Check the WHO_AM_I register to verify the sensor's identity
-    uint8_t who_am_i = read_register(WHO_AM_I_ADDR);
+    uint8_t who_am_i = read_register(device, WHO_AM_I_ADDR);
     if (who_am_i != WHO_AM_I_DEFAULT) {
         // Handle error, sensor not found or incorrect
     }
 
     // Configure the AV_CONF register
-    write_register(AV_CONF_ADDR, AV_CONF_DEFAULT);
+    write_register(device, AV_CONF_ADDR, AV_CONF_DEFAULT);
 
     // Configure the CTRL_REG1 register
-    write_register(CTRL_REG1_ADDR, CTRL_REG1_DEFAULT);
+    write_register(device, CTRL_REG1_ADDR, CTRL_REG1_DEFAULT);
 
     // Configure the CTRL_REG2 register
-    write_register(CTRL_REG2_ADDR, CTRL_REG2_DEFAULT);
+    write_register(device, CTRL_REG2_ADDR, CTRL_REG2_DEFAULT);
 
     // Configure the CTRL_REG3 register
-    write_register(CTRL_REG3_ADDR, CTRL_REG3_DEFAULT);
+    write_register(device, CTRL_REG3_ADDR, CTRL_REG3_DEFAULT);
+}
+
+int hts221_read_ident(HTS221_device* device) {
+    return read_register(device, WHO_AM_I_ADDR);
 }
 
 // Read the humidity value from the sensor
-float hts221_read_humidity() {
+float hts221_read_humidity(HTS221_device* device) {
     // Read the humidity registers
-    uint8_t humidity_l = read_register(HUMIDITY_OUT_L_ADDR);
-    uint8_t humidity_h = read_register(HUMIDITY_OUT_H_ADDR);
+    uint8_t humidity_l = read_register(device, HUMIDITY_OUT_L_ADDR);
+    uint8_t humidity_h = read_register(device, HUMIDITY_OUT_H_ADDR);
 
     // Combine the low and high bytes to get the humidity value
     uint16_t humidity_raw = (humidity_h << 8) | humidity_l;
@@ -102,10 +105,10 @@ float hts221_read_humidity() {
 }
 
 // Read the temperature value from the sensor
-float hts221_read_temperature() {
+float hts221_read_temperature(HTS221_device* device) {
     // Read the temperature registers
-    uint8_t temp_l = read_register(TEMP_OUT_L_ADDR);
-    uint8_t temp_h = read_register(TEMP_OUT_H_ADDR);
+    uint8_t temp_l = read_register(device, TEMP_OUT_L_ADDR);
+    uint8_t temp_h = read_register(device, TEMP_OUT_H_ADDR);
 
     // Combine the low and high bytes to get the temperature value
     uint16_t temp_raw = (temp_h << 8) | temp_l;
@@ -137,7 +140,7 @@ float hts221_read_temperature() {
  *
  * @return None.
  */
-void hts221_set_CTRL_REG1(uint8_t pd, uint8_t bdu, uint8_t odr) {
+void hts221_set_CTRL_REG1(HTS221_device* device, uint8_t pd, uint8_t bdu, uint8_t odr) {
     uint8_t reg_value = 0;
 
     // Set the PD bit
@@ -154,7 +157,7 @@ void hts221_set_CTRL_REG1(uint8_t pd, uint8_t bdu, uint8_t odr) {
     reg_value |= (odr & 0x03); // Only the last two bits are valid
 
     // Write the register value
-    write_register(CTRL_REG1_ADDR, reg_value);
+    write_register(device, CTRL_REG1_ADDR, reg_value);
 }
 
 
@@ -177,7 +180,7 @@ void hts221_set_CTRL_REG1(uint8_t pd, uint8_t bdu, uint8_t odr) {
  *
  * @return None.
  */
-void hts221_set_CTRL_REG2(uint8_t boot, uint8_t heater, uint8_t one_shot) {
+void hts221_set_CTRL_REG2(HTS221_device* device, uint8_t boot, uint8_t heater, uint8_t one_shot) {
     uint8_t reg_value = 0;
 
     // Set the BOOT bit
@@ -196,7 +199,7 @@ void hts221_set_CTRL_REG2(uint8_t boot, uint8_t heater, uint8_t one_shot) {
     }
 
     // Write the register value
-    write_register(CTRL_REG2_ADDR, reg_value);
+    write_register(device, CTRL_REG2_ADDR, reg_value);
 }
 
 
@@ -219,7 +222,7 @@ void hts221_set_CTRL_REG2(uint8_t boot, uint8_t heater, uint8_t one_shot) {
  *
  * @return None.
  */
-void hts221_set_CTRL_REG3(uint8_t drdy_h_l, uint8_t pp_od, uint8_t drdy_en) {
+void hts221_set_CTRL_REG3(HTS221_device* device, uint8_t drdy_h_l, uint8_t pp_od, uint8_t drdy_en) {
     uint8_t reg_value = 0;
 
     // Set the DRDY_H_L bit
@@ -238,7 +241,7 @@ void hts221_set_CTRL_REG3(uint8_t drdy_h_l, uint8_t pp_od, uint8_t drdy_en) {
     }
 
     // Write the register value
-    write_register(CTRL_REG3_ADDR, reg_value);
+    write_register(device, CTRL_REG3_ADDR, reg_value);
 }
 
 /**
@@ -254,11 +257,11 @@ void hts221_set_CTRL_REG3(uint8_t drdy_h_l, uint8_t pp_od, uint8_t drdy_en) {
  *               0: new data for temperature is not yet available
  *               1: new data for temperature is available
  */
-void hts221_read_STATUS_REG(StatusReg *status) {
+void hts221_read_STATUS_REG(HTS221_device* device, StatusReg *status) {
     uint8_t reg_value;
 
     // Read the register value
-    reg_value = read_register(STATUS_REG_ADDR);
+    reg_value = read_register(device, STATUS_REG_ADDR);
 
      // Extract the H_DA bit
     status->h_da = (reg_value & H_DA_BIT) ? 1 : 0;
@@ -275,15 +278,15 @@ void hts221_read_STATUS_REG(StatusReg *status) {
  * @param hum_cal_data A pointer to a HumidityCalibrationData struct to be filled with the humidity calibration data.
  * @param temp_cal_data A pointer to a TemperatureCalibrationData struct to be filled with the temperature calibration data.
  */
-void hts221_read_calibration(CalibrationData* hum_cal_data, CalibrationData* temp_cal_data) {
+void hts221_read_calibration(HTS221_device* device, CalibrationData* hum_cal_data, CalibrationData* temp_cal_data) {
     // Read the calibration data from the sensor's calibration registers
-    hum_cal_data->cal0 = read_register(0x30);
-    hum_cal_data->cal1 = read_register(0x31);
-    hum_cal_data->out0 = read_register(0x36) | (read_register(0x37) << 8);
-    hum_cal_data->out1 = read_register(0x3A) | (read_register(0x3B) << 8);
+    hum_cal_data->cal0 = read_register(device, 0x30);
+    hum_cal_data->cal1 = read_register(device, 0x31);
+    hum_cal_data->out0 = read_register(device, 0x36) | (read_register(device, 0x37) << 8);
+    hum_cal_data->out1 = read_register(device, 0x3A) | (read_register(device, 0x3B) << 8);
 
-    temp_cal_data->cal0 = read_register(0x32) | ((read_register(0x35) & 0x03) << 8);
-    temp_cal_data->cal1 = read_register(0x33) | ((read_register(0x35) & 0x0C) << 6);
-    temp_cal_data->out0 = read_register(0x3C) | (read_register(0x3D) << 8);
-    temp_cal_data->out1 = read_register(0x3E) | (read_register(0x3F) << 8);
+    temp_cal_data->cal0 = read_register(device, 0x32) | ((read_register(device, 0x35) & 0x03) << 8);
+    temp_cal_data->cal1 = read_register(device, 0x33) | ((read_register(device, 0x35) & 0x0C) << 6);
+    temp_cal_data->out0 = read_register(device, 0x3C) | (read_register(device, 0x3D) << 8);
+    temp_cal_data->out1 = read_register(device, 0x3E) | (read_register(device, 0x3F) << 8);
 }
