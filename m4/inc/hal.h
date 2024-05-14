@@ -10,6 +10,10 @@ typedef enum {
   HIGH
 } PinState;
 
+typedef struct {
+    uint16_t DevAddress; // Device address
+} I2C_Device;
+
 
 void Error_Handler(void);
 void initClock(void);
@@ -25,6 +29,9 @@ uint8_t SPI_transfer(uint8_t data);
 void Serial_begin(uint32_t baudrate);
 void Serial_print(char* message);
 
+void I2C_begin(I2C_Device* device, uint16_t DevAddress);
+void I2C_write(I2C_Device* device, uint16_t MemAddress, uint8_t *pData, uint16_t Size);
+void I2C_read(I2C_Device* device, uint16_t MemAddress, uint8_t *pData, uint16_t Size);
 
 #define PA0 0
 #define PA1 1

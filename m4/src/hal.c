@@ -3,13 +3,14 @@
 
 UART_HandleTypeDef huart1;
 SPI_HandleTypeDef hspi3;
+I2C_HandleTypeDef hi2c2;
 
 typedef struct {
     GPIO_TypeDef *Port;
     uint32_t Pin;
 } PinConfig;
 
-PinConfig pins[] = {
+const PinConfig pins[] __attribute__((section(".rodata"))) = {
     {GPIOA, GPIO_PIN_0},   // 0
     {GPIOA, GPIO_PIN_1},   // 1
     {GPIOA, GPIO_PIN_2},   // 2
@@ -188,4 +189,32 @@ void Serial_print(char* str) {
 // Receive data over UART
 void Serial_read(char* buffer, uint16_t size) {
     HAL_UART_Receive(&huart1, (uint8_t*)buffer, size, HAL_MAX_DELAY);
+}
+
+
+// I2C driver
+//
+void I2C_begin(I2C_Device* device, uint16_t DevAddress) {
+    device->DevAddress = DevAddress;
+
+    hi2c2.Instance = I2C2;
+    hi2c2.Init.Timing = 0x10909CEC;
+    hi2c2.Init.OwnAddress1 = 0;
+    hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+    hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+    hi2c2.Init.OwnAddress2 = 0;
+    hi2c2.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+    hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+    hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+    if (HAL_I2C_Init(&hi2c2) != HAL_OK) {
+        Error_Handler();
+    }
+}
+
+void I2C_write(I2C_Device* device, uint16_t MemAddress, uint8_t *pData, uint16_t Size) {
+    HAL_I2C_Mem_Write(&hi2c2, device->DevAddress, MemAddress, I2C_MEMADD_SIZE_8BIT, pData, Size, HAL_MAX_DELAY);
+}
+
+void I2C_read(I2C_Device* device, uint16_t MemAddress, uint8_t *pData, uint16_t Size) {
+    HAL_I2C_Mem_Read(&hi2c2, device->DevAddress, MemAddress, I2C_MEMADD_SIZE_8BIT, pData, Size, HAL_MAX_DELAY);
 }
