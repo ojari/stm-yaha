@@ -290,3 +290,55 @@ void hts221_read_calibration(HTS221_device* device, CalibrationData* hum_cal_dat
     temp_cal_data->out0 = read_register(device, 0x3C) | (read_register(device, 0x3D) << 8);
     temp_cal_data->out1 = read_register(device, 0x3E) | (read_register(device, 0x3F) << 8);
 }
+
+
+static void hts221_print_ctrl_reg(HTS221_device* device, uint8_t reg_addr, const char* reg_name) {
+    uint8_t reg_value = read_register(device, reg_addr);
+
+    Serial_print(reg_name);
+    Serial_print(":\n");
+
+    if (reg_addr == CTRL_REG1_ADDR) {
+        Serial_print("  PD:       ");
+        Serial_printi((reg_value & PD_BIT) == PD_BIT);
+        Serial_print("\n");
+
+        Serial_print("  BDU:      ");
+        Serial_printi((reg_value & BDU_BIT) == BDU_BIT);
+        Serial_print("\n");
+
+        Serial_print("  ODR:      ");
+        Serial_printi(reg_value & 0x03);
+        Serial_print("\n");
+    } else if (reg_addr == CTRL_REG2_ADDR) {
+        Serial_print("  BOOT:     ");
+        Serial_printi((reg_value & BOOT_BIT) == BOOT_BIT);
+        Serial_print("\n");
+
+        Serial_print("  HEATER:   ");
+        Serial_printi((reg_value & HEATER_BIT) == HEATER_BIT);
+        Serial_print("\n");
+
+        Serial_print(" ONE_SHOT:  ");
+        Serial_printi((reg_value & ONE_SHOT_BIT) == ONE_SHOT_BIT);
+        Serial_print("\n");
+    } else if (reg_addr == CTRL_REG3_ADDR) {
+        Serial_print("  DRDY_H_L: ");
+        Serial_printi((reg_value & DRDY_H_L_BIT) == DRDY_H_L_BIT);
+        Serial_print("\n");
+
+        Serial_print("  PP_OD:    ");
+        Serial_printi((reg_value & PP_OD_BIT) == PP_OD_BIT);
+        Serial_print("\n");
+
+        Serial_print("  DRDY_EN:  ");
+        Serial_printi((reg_value & DRDY_EN_BIT) == DRDY_EN_BIT);
+        Serial_print("\n");
+    }
+}
+
+void hts221_print_registers(HTS221_device* device) {
+    hts221_print_ctrl_reg(device, CTRL_REG1_ADDR, "CTRL_REG1");
+    hts221_print_ctrl_reg(device, CTRL_REG2_ADDR, "CTRL_REG2");
+    hts221_print_ctrl_reg(device, CTRL_REG3_ADDR, "CTRL_REG3");
+}

@@ -33,3 +33,4 @@ void hts221_set_CTRL_REG2(HTS221_device* device, uint8_t boot, uint8_t heater, u
 void hts221_set_CTRL_REG3(HTS221_device* device, uint8_t drdy_h_l, uint8_t pp_od, uint8_t drdy_en);
 void hts221_read_STATUS_REG(HTS221_device* device, StatusReg *status);
 int hts221_read_ident(HTS221_device* device);
+void hts221_print_registers(HTS221_device* device);

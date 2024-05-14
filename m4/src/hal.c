@@ -182,7 +182,7 @@ void Serial_begin(uint32_t baudrate) {
 }
 
 // Send data over UART
-void Serial_print(char* str) {
+void Serial_print(const char* str) {
     HAL_UART_Transmit(&huart1, (uint8_t*)str, strlen(str), HAL_MAX_DELAY);
 }
 
