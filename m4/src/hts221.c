@@ -72,18 +72,8 @@ void hts221_begin(HTS221_device* device) {
         // Handle error, sensor not found or incorrect
     }
 
-    // Configure the AV_CONF register
-    write_register(device, AV_CONF_ADDR, AV_CONF_DEFAULT);
-
-    // Configure the CTRL_REG1 register
-    write_register(device, CTRL_REG1_ADDR, CTRL_REG1_DEFAULT);
-
-    // Configure the CTRL_REG2 register
-    write_register(device, CTRL_REG2_ADDR, CTRL_REG2_DEFAULT);
-
-    // Configure the CTRL_REG3 register
-    write_register(device, CTRL_REG3_ADDR, CTRL_REG3_DEFAULT);
-}
+    hts221_read_calibration(device);
+ }
 
 int hts221_read_ident(HTS221_device* device) {
     return read_register(device, WHO_AM_I_ADDR);
@@ -96,12 +86,11 @@ float hts221_read_humidity(HTS221_device* device) {
     uint8_t humidity_h = read_register(device, HUMIDITY_OUT_H_ADDR);
 
     // Combine the low and high bytes to get the humidity value
-    uint16_t humidity_raw = (humidity_h << 8) | humidity_l;
+    int16_t humidity_raw = (humidity_h << 8) | humidity_l;
 
-    // Convert the raw value to a percentage
-    float humidity = humidity_raw * 0.00610;
+    float humidity_percent = device->humSlope * humidity_raw + device->humIntercept;
 
-    return humidity;
+    return humidity_percent;
 }
 
 // Read the temperature value from the sensor
@@ -111,12 +100,11 @@ float hts221_read_temperature(HTS221_device* device) {
     uint8_t temp_h = read_register(device, TEMP_OUT_H_ADDR);
 
     // Combine the low and high bytes to get the temperature value
-    uint16_t temp_raw = (temp_h << 8) | temp_l;
+    int16_t temp_raw = (temp_h << 8) | temp_l;
 
-    // Convert the raw value to degrees Celsius
-    float temperature = temp_raw * 0.00781;
+    float temp_degC = device->tempSlope * temp_raw + device->tempIntercept;
 
-    return temperature;
+    return temp_degC;
 }
 
 /**
@@ -274,21 +262,27 @@ void hts221_read_STATUS_REG(HTS221_device* device, StatusReg *status) {
  * @brief Read the calibration data from the sensor.
  *
  * This function reads the calibration data from the sensor's calibration registers.
- *
- * @param hum_cal_data A pointer to a HumidityCalibrationData struct to be filled with the humidity calibration data.
- * @param temp_cal_data A pointer to a TemperatureCalibrationData struct to be filled with the temperature calibration data.
  */
-void hts221_read_calibration(HTS221_device* device, CalibrationData* hum_cal_data, CalibrationData* temp_cal_data) {
+void hts221_read_calibration(HTS221_device* device) {
     // Read the calibration data from the sensor's calibration registers
-    hum_cal_data->cal0 = read_register(device, 0x30);
-    hum_cal_data->cal1 = read_register(device, 0x31);
-    hum_cal_data->out0 = read_register(device, 0x36) | (read_register(device, 0x37) << 8);
-    hum_cal_data->out1 = read_register(device, 0x3A) | (read_register(device, 0x3B) << 8);
+    uint8_t raw8;
+    int16_t raw16;
+    
+    uint8_t hum_rh0  = read_register(device, 0x30);
+    uint8_t hum_rh1  = read_register(device, 0x31);
+    int16_t hum_out0 = read_register(device, 0x36) | (read_register(device, 0x37) << 8);
+    int16_t hum_out1 = read_register(device, 0x3A) | (read_register(device, 0x3B) << 8);
 
-    temp_cal_data->cal0 = read_register(device, 0x32) | ((read_register(device, 0x35) & 0x03) << 8);
-    temp_cal_data->cal1 = read_register(device, 0x33) | ((read_register(device, 0x35) & 0x0C) << 6);
-    temp_cal_data->out0 = read_register(device, 0x3C) | (read_register(device, 0x3D) << 8);
-    temp_cal_data->out1 = read_register(device, 0x3E) | (read_register(device, 0x3F) << 8);
+    device->humSlope = (float)(hum_rh1 - hum_rh0) / (float)(2.0 * (hum_out1 - hum_out0));
+    device->humIntercept = (float)(hum_rh0 / 2.0) - (float)(device->humSlope * hum_out0);     
+
+    uint16_t temp_deg0 = read_register(device, 0x32) | ((read_register(device, 0x35) & 0x03) << 8);
+    uint16_t temp_deg1 = read_register(device, 0x33) | ((read_register(device, 0x35) & 0x0C) << 6);
+    int16_t temp_out0  = read_register(device, 0x3C) | (read_register(device, 0x3D) << 8);
+    int16_t temp_out1  = read_register(device, 0x3E) | (read_register(device, 0x3F) << 8);
+
+    device->tempSlope = (float)(temp_deg1 - temp_deg0) / (float)(8.0 * (temp_out1 - temp_out0));
+    device->tempIntercept = (float)(temp_deg0 / 8.0) - (float)(device->tempSlope * temp_out0);
 }
 
 
