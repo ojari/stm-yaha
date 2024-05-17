@@ -29,7 +29,8 @@ uint8_t SPI_transfer(uint8_t data);
 
 void Serial_begin(uint32_t baudrate);
 void Serial_print(const char* message);
-void Serial_printi(uint8_t value);
+void Serial_printi(uint16_t value);
+void Serial_printf(float value);
 
 void I2C_begin(I2C_Device* device, uint16_t writeAddress, uint16_t readAddress);
 void I2C_write(I2C_Device* device, uint16_t MemAddress, uint8_t *pData, uint16_t Size);

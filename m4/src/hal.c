@@ -186,11 +186,11 @@ void Serial_print(const char* str) {
     HAL_UART_Transmit(&huart1, (uint8_t*)str, strlen(str), HAL_MAX_DELAY);
 }
 
-void Serial_printi(uint8_t value) {
+void Serial_printi(uint16_t value) {
     char buffer[10];
     uint8_t i = 0;
     uint8_t length = 0;
-    uint8_t temp = value;
+    uint16_t temp = value;
 
     // Calculate the length of the number
     do {
@@ -207,6 +207,28 @@ void Serial_printi(uint8_t value) {
 
     buffer[length] = '\0';
     Serial_print(buffer);
+}
+
+void Serial_printf(float value) {
+    // Convert the float to an integer
+    int16_t intValue = (int16_t)value;
+
+    // Print the integer part
+    Serial_printi(intValue);
+
+    // Print the decimal point
+    Serial_print(".");
+
+    // Calculate the fractional part
+    float fractionalPart = value - (float)intValue;
+
+    // Print the fractional part
+    for (int i = 0; i < 2; i++) {
+        fractionalPart *= 10;
+        int16_t digit = (int16_t)fractionalPart;
+        Serial_printi(digit);
+        fractionalPart -= (float)digit;
+    }
 }
 
 // Receive data over UART
